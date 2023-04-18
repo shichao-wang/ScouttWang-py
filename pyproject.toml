@@ -1,0 +1,39 @@
+
+[project]
+name = "scouttwang-py"
+version = "0.0.1"
+requires-python = ">=3.8"
+dependencies = ["toml==0.10.2", "pyyaml==6.0"]
+
+[build-system]
+requires = ["setuptools", "wheel"]      # PEP 508 specifications.
+build-backend = "setuptools.build_meta"
+
+[project.optional-dependencies]
+develop = ["black", "isort", "pylint", "mypy"]
+
+[tool.setuptools.packages]
+find = { where = [
+    "src",
+], exclude = [
+    "*test.py",
+    "*.egg-info/*",
+], namespaces = false }
+
+# PyLint configurations
+[tool.pylint]
+disable = ["missing-module-docstring"]
+[tool.pylint.basic]
+no-docstring-rgx = ".*"
+good-names-rgxs = ["\\w"]
+[tool.pylint.TYPECHECK]
+generated-members = ["numpy.*", "torch.*"]
+[tool.pylint.FORMAT]
+max-line-length = 120
+
+[tool.black]
+line-length = 120
+
+[tool.isort]
+profile = "black"
+line_length = 120
