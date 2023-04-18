@@ -27,3 +27,6 @@ def flatten_dict(dict: Mapping[str, Any]) -> Dict[str, Any]:
         return flatdict
 
     return _inner_flatten(dict)
+
+
+__all__ = ["flatdict_to_hierarchical", "flatten_dict"]

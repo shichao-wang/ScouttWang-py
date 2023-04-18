@@ -5,7 +5,7 @@ import typing
 from argparse import ONE_OR_MORE, ArgumentParser
 from typing import Any, Dict, Generic, Mapping, Optional, Protocol, Sequence, Type, TypeVar, Union
 
-from dataclass_utils import DataclassT, dataclass_from_flatdict
+from dataclass_utils.ops import DataclassT, dataclass_from_flatdict
 from flatdict import flatten_dict
 
 log = logging.getLogger(__name__)
