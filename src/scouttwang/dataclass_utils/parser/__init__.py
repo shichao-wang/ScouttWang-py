@@ -1,12 +1,17 @@
 import dataclasses
+import json
 import logging
 import os
 import typing
 from argparse import ONE_OR_MORE, ArgumentParser
 from typing import Any, Dict, Generic, Mapping, Optional, Protocol, Sequence, Type, TypeVar, Union
 
-from dataclass_utils.ops import DataclassT, dataclass_from_flatdict
-from flatdict import flatten_dict
+import toml
+import yaml
+
+from scouttwang.dataclass_utils.ops import dataclass_from_flatdict
+from scouttwang.dataclass_utils.typing import DataclassT
+from scouttwang.flatdict import flatten_dict
 
 log = logging.getLogger(__name__)
 
@@ -36,7 +41,7 @@ def parser_add_dataclass_arguments(parser: ArgumentParser, dataclass: Type[Datac
 
 
 class SupportsRead(Protocol):
-    def read(self, size: int = ...) -> Union[str, bytes]:
+    def read(self, size: int = ...) -> str:
         pass
 
 
@@ -56,18 +61,12 @@ class ConfigLoader:
             raise ValueError("")
 
     def load_json(self, stream: SupportsRead):
-        import json
-
         return json.load(stream)
 
     def load_yaml(self, stream: SupportsRead):
-        import yaml
-
         return yaml.safe_load(stream)
 
     def load_toml(self, stream: SupportsRead):
-        import toml
-
         obj = toml.load(stream)
         log.info(obj)
         return obj
