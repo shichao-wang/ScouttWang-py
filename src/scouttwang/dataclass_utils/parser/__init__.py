@@ -34,12 +34,14 @@ def parser_add_argument(parser: ActionsContainer, dest: str, atype: Type, defaul
         parser_add_tuple_argument(parser, dest, type_args[0], default)
         return
 
-    kwargs = {"action": "store", "dest": dest, "type": atype}
-    if default is not no_default:
-        kwargs["default"] = default
+    if atype in (str, int, float):
+        kwargs = {"action": "store", "dest": dest, "type": atype}
+        if default is not no_default:
+            kwargs["default"] = default
 
-    parser.add_argument(f"--{dest}", **kwargs)  # type: ignore
-    return
+        parser.add_argument(f"--{dest}", **kwargs)  # type: ignore
+        return
+    log.warning("Unsupported argument dtype: %s(%s)", dest, atype)
 
 
 def parser_add_dataclass_arguments(parser: ActionsContainer, dataclass: Type[DataclassT], prefix: str = ""):
