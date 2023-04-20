@@ -11,7 +11,7 @@ def ensure_folder(root: str, *paths: str) -> str:
 
 
 def is_empty_folder(path: str) -> bool:
-    if not os.path.isfile(path):
+    if os.path.isfile(path):
         raise FileExistsError()
     os.makedirs(path, exist_ok=True)
     return not builtins.any(os.scandir(path))
