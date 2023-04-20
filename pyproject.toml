@@ -10,7 +10,7 @@ requires = ["setuptools", "wheel"]      # PEP 508 specifications.
 build-backend = "setuptools.build_meta"
 
 [project.optional-dependencies]
-develop = ["black", "isort", "pylint", "mypy"]
+develop = ["black", "isort", "pylint", "mypy", "types-toml", "types-PyYAML"]
 
 [tool.setuptools.packages]
 find = { where = [
