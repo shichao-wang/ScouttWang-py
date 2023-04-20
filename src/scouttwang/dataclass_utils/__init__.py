@@ -1,4 +1,4 @@
-from .ops import dataclass_defaults, dataclass_from_dict, dataclass_from_flatdict
+from .ops import dataclass_defaults, dataclass_from_dict, dataclass_from_flatdict, field_default
 from .parser import DataclassParser, parse_dataclass
 from .typing import Dataclass, DataclassT
 
@@ -10,5 +10,6 @@ __all__ = [
     "dataclass_defaults",
     "dataclass_from_dict",
     "dataclass_from_flatdict",
+    "field_default",
     "parse_dataclass",
 ]

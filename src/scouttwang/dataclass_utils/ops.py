@@ -1,5 +1,5 @@
 import dataclasses
-from dataclasses import MISSING
+from dataclasses import MISSING, Field
 from typing import Any, Dict, Mapping, Type
 
 from .typing import DataclassT
@@ -10,11 +10,19 @@ def dataclass_defaults(dataclass: Type[DataclassT]) -> Dict[str, Any]:
     for field in dataclasses.fields(dataclass):
         if dataclasses.is_dataclass(field.type):
             continue
-        if field.default is not MISSING:
-            defaults[field.name] = field.default
-        elif field.default_factory is not MISSING:
-            defaults[field.name] = field.default_factory()
+        default = field_default(field)
+        if default is None:
+            continue
+        defaults[field.name] = default
     return defaults
+
+
+def field_default(field: Field, *, default: Any = None) -> Any:
+    if field.default is not MISSING:
+        return field.default
+    if field.default_factory is not MISSING:
+        return field.default_factory()
+    return default
 
 
 _marker = object()

@@ -4,40 +4,68 @@ import logging
 import os
 import typing
 from argparse import ONE_OR_MORE, ArgumentParser
-from typing import Any, Dict, Generic, Mapping, Optional, Protocol, Sequence, Type, TypeVar, Union
+from argparse import _ActionsContainer as ActionsContainer
+from typing import Any, Dict, Generic, List, Mapping, Optional, Protocol, Sequence, Type, TypeVar, Union
 
 import toml
 import yaml
 
-from scouttwang.dataclass_utils.ops import dataclass_from_flatdict
+from scouttwang.dataclass_utils.ops import dataclass_from_flatdict, field_default
 from scouttwang.dataclass_utils.typing import DataclassT
 from scouttwang.flatdict import flatten_dict
 
 log = logging.getLogger(__name__)
 
 
-def parser_add_dataclass_arguments(parser: ArgumentParser, dataclass: Type[DataclassT], prefix: str = ""):
+no_default = object()
+
+
+def parser_add_argument(parser: ActionsContainer, dest: str, atype: Type, default: Any = no_default) -> None:
+    origin_type = typing.get_origin(atype)
+    type_args = typing.get_args(atype)
+
+    if dataclasses.is_dataclass(atype):
+        parser_add_dataclass_arguments(parser, atype, prefix=dest + ".")
+        return
+    if atype is bool:
+        parser_add_bool_argument(parser, dest, default)
+        return
+    if origin_type is tuple and type_args[1] is Ellipsis:
+        parser_add_tuple_argument(parser, dest, type_args[0], default)
+        return
+
+    kwargs = {"action": "store", "dest": dest, "type": atype}
+    if default is not no_default:
+        kwargs["default"] = default
+
+    parser.add_argument(f"--{dest}", **kwargs)  # type: ignore
+    return
+
+
+def parser_add_dataclass_arguments(parser: ActionsContainer, dataclass: Type[DataclassT], prefix: str = ""):
+    # parser.add_argument()
     for field in dataclasses.fields(dataclass):
         dest = prefix + field.name
-        argflag = "--" + dest
-        required = parser.get_default(dest) is None
+        if dataclasses.is_dataclass(field.type):  # nested dataclass
+            parser_add_dataclass_arguments(parser.add_argument_group(field.name), field.type, prefix=f"{dest}.")
+            continue
+        parser_add_argument(parser, dest, field.type, field_default(field, default=no_default))
 
-        if dataclasses.is_dataclass(field.type):
-            parser_add_dataclass_arguments(parser, field.type, prefix=f"{dest}.")
-        elif field.type is bool:
-            exclusive_group = parser.add_mutually_exclusive_group(required=required)
-            exclusive_group.add_argument(argflag, action="store_true", dest=dest)
-            reverse_argflag = "--not_" + dest
-            exclusive_group.add_argument(reverse_argflag, action="store_false", dest=dest)
-        elif field.type in (int, float, str):
-            parser.add_argument(argflag, type=field.type, required=required, dest=dest)
-        elif typing.get_origin(field.type) is tuple and typing.get_args(field.type)[1] is Ellipsis:
-            value_type = typing.get_args(field.type)[0]
-            parser.add_argument(
-                argflag, action="extend", nargs=ONE_OR_MORE, type=value_type, required=required, dest=dest
-            )
-        else:
-            log.warning("Unsupported field: %s(%s)", dest, field.type)
+
+def parser_add_tuple_argument(
+    parser: ActionsContainer, dest: str, vtype: Type, default: Union[List, object] = no_default
+) -> None:
+    kwargs = {"action": "extend", "nargs": ONE_OR_MORE, "type": vtype, "dest": dest}
+    if default is not no_default:
+        kwargs["default"] = default
+    parser.add_argument(f"--{dest}", **kwargs)  # type: ignore
+
+
+def parser_add_bool_argument(parser: ActionsContainer, dest: str, default: Union[bool, object] = no_default) -> None:
+    exclusive_group = parser.add_mutually_exclusive_group(required=default is no_default)
+    exclusive_group.add_argument(f"--{dest}", action="store_true", dest=dest)
+    reverse_argflag = "--not_" + dest
+    exclusive_group.add_argument(reverse_argflag, action="store_false", dest=dest)
 
 
 class SupportsRead(Protocol):
@@ -92,6 +120,7 @@ class DataclassParser(Generic[DataclassT]):
         parser_add_dataclass_arguments(parser, self.dataclass)
         ns = parser.parse_args(args)
         flat_conf_kwargs.update(vars(ns))
+        log.debug("flat kwargs: %s", flat_conf_kwargs)
         return dataclass_from_flatdict(flat_conf_kwargs, self.dataclass)
 
 
