@@ -28,21 +28,21 @@ def field_default(field: Field, *, default: Any = None) -> Any:
 _marker = object()
 
 
-def dataclass_from_flatdict(flatdict: Mapping[str, str], dataclass: Type[DataclassT]) -> DataclassT:
-    kwargs = dataclass_defaults(dataclass)
+# def dataclass_from_flatdict(flatdict: Mapping[str, str], dataclass: Type[DataclassT]) -> DataclassT:
+#     kwargs = dataclass_defaults(dataclass)
 
-    for field in dataclasses.fields(dataclass):
-        if dataclasses.is_dataclass(field.type):
-            prefix = f"{field.name}."
-            plen = len(prefix)
-            subdict = {k[plen:]: v for k, v in flatdict.items() if k.startswith(field.name)}
-            kwargs[field.name] = dataclass_from_flatdict(subdict, field.type)
-        else:
-            value = flatdict.get(field.name, _marker)
-            if value is not _marker:
-                kwargs[field.name] = value
+#     for field in dataclasses.fields(dataclass):
+#         if dataclasses.is_dataclass(field.type):
+#             prefix = f"{field.name}."
+#             plen = len(prefix)
+#             subdict = {k[plen:]: v for k, v in flatdict.items() if k.startswith(field.name)}
+#             kwargs[field.name] = dataclass_from_flatdict(subdict, field.type)
+#         else:
+#             value = flatdict.get(field.name, _marker)
+#             if value is not _marker:
+#                 kwargs[field.name] = value
 
-    return dataclass(**kwargs)
+#     return dataclass(**kwargs)
 
 
 def dataclass_from_dict(kwargs: Mapping[str, Any], dataclass: Type[DataclassT]) -> DataclassT:

@@ -10,9 +10,9 @@ from typing import Any, Dict, Generic, List, Mapping, Optional, Protocol, Sequen
 import toml
 import yaml
 
-from scouttwang.dataclass_utils.ops import dataclass_from_flatdict, field_default
+from scouttwang.dataclass_utils.ops import dataclass_from_dict, field_default
 from scouttwang.dataclass_utils.typing import DataclassT
-from scouttwang.flatdict import flatten_dict
+from scouttwang.flatdict import flatdict_to_hierarchical, flatten_dict
 
 log = logging.getLogger(__name__)
 
@@ -121,7 +121,8 @@ class DataclassParser(Generic[DataclassT]):
         ns = parser.parse_args(args)
         flat_conf_kwargs.update(vars(ns))
         log.debug("flat kwargs: %s", flat_conf_kwargs)
-        return dataclass_from_flatdict(flat_conf_kwargs, self.dataclass)
+        conf_kwargs = flatdict_to_hierarchical(flat_conf_kwargs)
+        return dataclass_from_dict(conf_kwargs, self.dataclass)
 
 
 def parse_dataclass(dataclass: Type[DataclassT]) -> DataclassT:
